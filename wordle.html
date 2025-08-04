@@ -47,21 +47,42 @@
 <p id="message"></p>
 
 <script>
-  const solution = "CRANE"; // You can change this word
+  const solution = "CRANE";
   let attempts = 0;
   const maxAttempts = 6;
 
-  function createRow(word, result) {
-    const row = document.createElement("div");
-    row.className = "row";
-    for (let i = 0; i < 5; i++) {
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.textContent = word[i];
-      if (result) cell.classList.add(result[i]);
-      row.appendChild(cell);
+  async function isRealWord(word) {
+    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+    return response.ok;
+  }
+
+  async function submitGuess() {
+    const input = document.getElementById("guess");
+    const guess = input.value.toUpperCase();
+    
+    if (guess.length !== 5) {
+      alert("Please enter a 5-letter word.");
+      return;
     }
-    document.getElementById("board").appendChild(row);
+
+    const valid = await isRealWord(guess.toLowerCase());
+    if (!valid) {
+      alert("Not a real word.");
+      return;
+    }
+
+    attempts++;
+    const result = evaluateGuess(guess);
+    createRow(guess, result);
+    input.value = "";
+
+    if (guess === solution) {
+      document.getElementById("message").textContent = "🎉 You guessed it!";
+      input.disabled = true;
+    } else if (attempts >= maxAttempts) {
+      document.getElementById("message").textContent = `😢 Game Over. The word was ${solution}.`;
+      input.disabled = true;
+    }
   }
 
   function evaluateGuess(guess) {
@@ -78,27 +99,20 @@
     return result;
   }
 
-  function submitGuess() {
-    const input = document.getElementById("guess");
-    const guess = input.value.toUpperCase();
-    if (guess.length !== 5) {
-      alert("Please enter a 5-letter word.");
-      return;
+  function createRow(word, result) {
+    const row = document.createElement("div");
+    row.className = "row";
+    for (let i = 0; i < 5; i++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.textContent = word[i];
+      if (result) cell.classList.add(result[i]);
+      row.appendChild(cell);
     }
-    attempts++;
-    const result = evaluateGuess(guess);
-    createRow(guess, result);
-    input.value = "";
-
-    if (guess === solution) {
-      document.getElementById("message").textContent = "🎉 You guessed it!";
-      input.disabled = true;
-    } else if (attempts >= maxAttempts) {
-      document.getElementById("message").textContent = `😢 Game Over. The word was ${solution}.`;
-      input.disabled = true;
-    }
+    document.getElementById("board").appendChild(row);
   }
 </script>
+
 
 </body>
 </html>
