@@ -125,7 +125,26 @@
     document.getElementById("board").appendChild(row);
   }
   // Create the virtual keyboard
-const keyboardContainer = document.getElementById("keyboard");
+window.onload = function () {
+  const keyboardContainer = document.getElementById("keyboard");
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+  letters.forEach(letter => {
+    const key = document.createElement("button");
+    key.textContent = letter;
+    key.style.margin = "4px";
+    key.style.padding = "10px";
+    key.style.fontSize = "16px";
+    key.addEventListener("click", () => {
+      const input = document.getElementById("guess");
+      if (input.value.length < 5) {
+        input.value += letter;
+      }
+    });
+    keyboardContainer.appendChild(key);
+  });
+};
+
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 letters.forEach(letter => {
