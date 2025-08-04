@@ -145,23 +145,6 @@ window.onload = function () {
   });
 };
 
-const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
-letters.forEach(letter => {
-  const key = document.createElement("button");
-  key.textContent = letter;
-  key.style.margin = "4px";
-  key.style.padding = "10px";
-  key.style.fontSize = "16px";
-  key.addEventListener("click", () => {
-    const input = document.getElementById("guess");
-    if (input.value.length < 5) {
-      input.value += letter;
-    }
-  });
-  keyboardContainer.appendChild(key);
-});
-
 // Track used letters
 function updateKeyboardColors(guess, result) {
   const keys = document.querySelectorAll("#keyboard button");
