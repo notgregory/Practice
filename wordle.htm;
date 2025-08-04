@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mini Wordle</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    .row { display: flex; justify-content: center; margin-bottom: 10px; }
+    .cell {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ccc;
+      margin: 2px;
+      font-size: 24px;
+      text-transform: uppercase;
+      line-height: 40px;
+      text-align: center;
+    }
+    .correct { background-color: green; color: white; }
+    .present { background-color: goldenrod; color: white; }
+    .absent { background-color: #333; color: white; }
+  </style>
+</head>
+<body>
+
+<h1>Mini Wordle</h1>
+<p>Guess the 5-letter word!</p>
+<div id="board"></div>
+<input type="text" id="guess" maxlength="5" autofocus>
+<button onclick="submitGuess()">Guess</button>
+<p id="message"></p>
+
+<script>
+  const solution = "CRANE"; // You can change this
+  let attempts = 0;
+  const maxAttempts = 6;
+
+  function createRow(word, result) {
+    const row = document.createElement("div");
+    row.className = "row";
+    for (let i = 0; i < 5; i++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.textContent = word[i];
+
+      if (result) cell.classList.add(result[i]);
+      row.appendChild(cell);
+    }
+    document.getElementById("board").appendChild(row);
+  }
+
+  function evaluateGuess(guess) {
+    const result = [];
+    for (let i = 0; i < 5; i++) {
+      if (guess[i] === solution[i]) {
+        result.push("correct");
+      } else if (solution.includes(guess[i])) {
+        result.push("present");
+      } else {
+        result.push("absent");
+      }
+    }
+    return result;
+  }
+
+  function submitGuess() {
+    const input = document.getElementById("guess");
+    const guess = input.value.toUpperCase();
+    if (guess.length !== 5) {
+      alert("Please enter a 5-letter word.");
+      return;
+    }
+    attempts++;
+    const result = evaluateGuess(guess);
+    createRow(guess, result);
+    input.value = "";
+
+    if (guess === solution) {
+      document.getElementById("message").textContent = "🎉 You guessed it!";
+      input.disabled = true;
+    } else if (attempts >= maxAttempts) {
+      document.getElementById("message").textContent = `😢 Game Over. The word was ${solution}.`;
+      input.disabled = true;
+    }
+  }
+</script>
+
+</body>
+</html>
