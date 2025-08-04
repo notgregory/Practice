@@ -41,6 +41,18 @@
 
 <h1>Mini Wordle</h1>
 <p>Guess the 5-letter word!</p>
+  <div id="keyboard"></div>
+
+<!-- Color Legend -->
+<div style="margin-top: 20px;">
+  <strong>Color Key:</strong>
+  <div class="row">
+    <div class="cell correct">A</div> = Correct letter & spot
+    <div class="cell present">A</div> = Correct letter, wrong spot
+    <div class="cell absent">A</div> = Not in the word
+  </div>
+</div>
+
 <div id="board"></div>
 <input type="text" id="guess" maxlength="5" autofocus>
 <button onclick="submitGuess()">Guess</button>
@@ -74,6 +86,7 @@
     attempts++;
     const result = evaluateGuess(guess);
     createRow(guess, result);
+    updateKeyboardColors(guess, result);
     input.value = "";
 
     if (guess === solution) {
@@ -111,6 +124,45 @@
     }
     document.getElementById("board").appendChild(row);
   }
+  // Create the virtual keyboard
+const keyboardContainer = document.getElementById("keyboard");
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+letters.forEach(letter => {
+  const key = document.createElement("button");
+  key.textContent = letter;
+  key.style.margin = "4px";
+  key.style.padding = "10px";
+  key.style.fontSize = "16px";
+  key.addEventListener("click", () => {
+    const input = document.getElementById("guess");
+    if (input.value.length < 5) {
+      input.value += letter;
+    }
+  });
+  keyboardContainer.appendChild(key);
+});
+
+// Track used letters
+function updateKeyboardColors(guess, result) {
+  const keys = document.querySelectorAll("#keyboard button");
+  guess.split("").forEach((letter, i) => {
+    const key = Array.from(keys).find(k => k.textContent === letter);
+    if (key) {
+      if (result[i] === "correct") {
+        key.style.backgroundColor = "green";
+        key.style.color = "white";
+      } else if (result[i] === "present" && key.style.backgroundColor !== "green") {
+        key.style.backgroundColor = "goldenrod";
+        key.style.color = "white";
+      } else if (result[i] === "absent" && key.style.backgroundColor !== "green" && key.style.backgroundColor !== "goldenrod") {
+        key.style.backgroundColor = "#333";
+        key.style.color = "white";
+      }
+    }
+  });
+}
+
 </script>
 
 
