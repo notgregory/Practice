@@ -59,7 +59,19 @@
 <p id="message"></p>
 
 <script>
-  const solution = "CRANE";
+  let solution = "";
+
+fetch("https://api.datamuse.com/words?sp=?????&max=500&md=f")
+  .then(res => res.json())
+  .then(data => {
+    const sorted = data
+      .filter(word => word.tags && word.tags[0].startsWith("f"))
+      .sort((a, b) => parseFloat(b.tags[0].slice(1)) - parseFloat(a.tags[0].slice(1)));
+
+    const topWords = sorted.slice(0, 100).map(w => w.word.toUpperCase());
+    solution = topWords[Math.floor(Math.random() * topWords.length)];
+    console.log("Word of the day:", solution); // Optional
+  });
   let attempts = 0;
   const maxAttempts = 6;
 
@@ -69,6 +81,10 @@
   }
 
   async function submitGuess() {
+    if (!solution) {
+  alert("Hold on! The word is still loading...");
+  return;
+}
     const input = document.getElementById("guess");
     const guess = input.value.toUpperCase();
     
