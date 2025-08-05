@@ -13,7 +13,7 @@
   .row {
     display: flex;
     justify-content: center;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
   }
 
@@ -24,11 +24,10 @@
     max-height: 50px;
     border: 2px solid #ccc;
     margin: 2px;
-    font-size: 5vw;
-    max-font-size: 22px;
-    text-transform: uppercase;
+    font-size: 6vw;
     line-height: 12vw;
     text-align: center;
+    text-transform: uppercase;
   }
 
   .correct {
@@ -46,21 +45,26 @@
     color: white;
   }
 
-  button {
-    font-size: 4vw;
-    padding: 8px 10px;
-    margin: 3px;
-    min-width: 32px;
-    min-height: 32px;
-    border-radius: 6px;
-    border: 1px solid #999;
+  #keyboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin: 15px 0;
   }
 
-  #keyboard {
-    margin-top: 12px;
+  .kb-row {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
+    flex-wrap: nowrap;
+  }
+
+  .kb-row button {
+    margin: 2px;
+    padding: 6px;
+    font-size: 5vw;
+    max-width: 40px;
+    min-width: 10vw;
   }
 
   input[type="text"] {
@@ -68,6 +72,29 @@
     padding: 6px;
     width: 50%;
     max-width: 200px;
+    margin-bottom: 10px;
+  }
+
+  button {
+    font-size: 4vw;
+    padding: 8px 12px;
+    margin-left: 5px;
+  }
+
+  .color-key {
+    margin-top: 20px;
+  }
+
+  .color-key .row {
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    gap: 10px;
+  }
+
+  .color-key .row div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   @media (min-width: 600px) {
@@ -78,8 +105,10 @@
       line-height: 40px;
     }
 
-    button {
+    .kb-row button {
       font-size: 16px;
+      max-width: unset;
+      min-width: 32px;
     }
   }
 </style>
@@ -188,25 +217,29 @@ fetch("https://api.datamuse.com/words?sp=?????&max=500&md=f")
     document.getElementById("board").appendChild(row);
   }
   // Create the virtual keyboard
-window.onload = function () {
-  const keyboardContainer = document.getElementById("keyboard");
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const keyboardContainer = document.getElementById("keyboard");
+const keyLayout = [
+  "QWERTYUIOP",
+  "ASDFGHJKL",
+  "ZXCVBNM"
+];
 
-  letters.forEach(letter => {
+keyLayout.forEach(rowLetters => {
+  const row = document.createElement("div");
+  row.className = "kb-row";
+  rowLetters.split("").forEach(letter => {
     const key = document.createElement("button");
     key.textContent = letter;
-    key.style.margin = "4px";
-    key.style.padding = "10px";
-    key.style.fontSize = "16px";
     key.addEventListener("click", () => {
       const input = document.getElementById("guess");
       if (input.value.length < 5) {
         input.value += letter;
       }
     });
-    keyboardContainer.appendChild(key);
+    row.appendChild(key);
   });
-};
+  keyboardContainer.appendChild(row);
+});
 
 // Track used letters
 function updateKeyboardColors(guess, result) {
