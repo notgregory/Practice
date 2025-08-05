@@ -1,268 +1,260 @@
+<!--
+  Wordle Clone - Mobile Optimized with Learning Comments
+  Features:
+  - Responsive layout
+  - On-screen keyboard
+  - Random word every 6 hours
+  - Dictionary check
+  - Shows definition and usage
+  - Extra attempts option
+-->
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mini Wordle</title>
-<style>
-  body {
-    font-family: sans-serif;
-    text-align: center;
-    padding: 10px;
-    margin: 0;
-  }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121213;
+      color: #ffffff;
+      text-align: center;
+      margin: 0;
+      padding: 1em;
+    }
 
-  .row {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
+    h1 {
+      margin-bottom: 0.2em;
+    }
 
-  .cell {
-    width: 12vw;
-    height: 12vw;
-    max-width: 50px;
-    max-height: 50px;
-    border: 2px solid #ccc;
-    margin: 2px;
-    font-size: 6vw;
-    line-height: 12vw;
-    text-align: center;
-    text-transform: uppercase;
-  }
+    #board {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 10px;
+      margin: 20px auto;
+      width: 100%;
+      max-width: 280px;
+    }
 
-  .correct {
-    background-color: green;
-    color: white;
-  }
+    .row {
+      display: flex;
+      justify-content: center;
+    }
 
-  .present {
-    background-color: goldenrod;
-    color: white;
-  }
-
-  .absent {
-    background-color: #333;
-    color: white;
-  }
-
-  #keyboard {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    margin: 15px 0;
-  }
-
-  .kb-row {
-    display: flex;
-    justify-content: center;
-    flex-wrap: nowrap;
-  }
-
-  .kb-row button {
-    margin: 2px;
-    padding: 6px;
-    font-size: 5vw;
-    max-width: 40px;
-    min-width: 10vw;
-  }
-
-  input[type="text"] {
-    font-size: 5vw;
-    padding: 6px;
-    width: 50%;
-    max-width: 200px;
-    margin-bottom: 10px;
-  }
-
-  button {
-    font-size: 4vw;
-    padding: 8px 12px;
-    margin-left: 5px;
-  }
-
-  .color-key {
-    margin-top: 20px;
-  }
-
-  .color-key .row {
-    flex-wrap: nowrap;
-    justify-content: space-around;
-    gap: 10px;
-  }
-
-  .color-key .row div {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  @media (min-width: 600px) {
     .cell {
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
+      border: 2px solid #555;
+      margin: 2px;
       font-size: 24px;
-      line-height: 40px;
+      text-transform: uppercase;
+      line-height: 50px;
+      font-weight: bold;
     }
 
-    .kb-row button {
-      font-size: 16px;
-      max-width: unset;
-      min-width: 32px;
+    .correct { background-color: green; color: white; }
+    .present { background-color: goldenrod; color: white; }
+    .absent { background-color: #3a3a3c; color: white; }
+
+    #keyboard {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      max-width: 320px;
+      margin: 20px auto;
     }
-  }
-</style>
+
+    #keyboard button {
+      padding: 10px;
+      min-width: 32px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      background-color: #d3d6da;
+      color: black;
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      font-size: 24px;
+      padding: 8px;
+      width: 200px;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .info {
+      margin-top: 20px;
+      font-size: 0.95em;
+    }
+  </style>
 </head>
 <body>
 
 <h1>Mini Wordle</h1>
 <p>Guess the 5-letter word!</p>
-  <div id="keyboard"></div>
-
-<!-- Color Legend -->
-<div style="margin-top: 20px;">
-  <strong>Color Key:</strong>
-  <div class="row">
-    <div class="cell correct">A</div> = Correct letter & spot
-    <div class="cell present">A</div> = Correct letter, wrong spot
-    <div class="cell absent">A</div> = Not in the word
-  </div>
-</div>
 
 <div id="board"></div>
+
 <input type="text" id="guess" maxlength="5" autofocus>
 <button onclick="submitGuess()">Guess</button>
 <p id="message"></p>
 
+<!-- Virtual Keyboard -->
+<div id="keyboard"></div>
+
+<!-- Color Key -->
+<div class="info">
+  <strong>Color Key:</strong><br>
+  <span class="cell correct">A</span> Correct spot
+  <span class="cell present">A</span> Wrong spot
+  <span class="cell absent">A</span> Not in word
+</div>
+
+<!-- Definition area -->
+<div class="info" id="definition"></div>
+
 <script>
-  let solution = "";
+  // Common word list (sample — expand as needed)
+  const words = ["CRANE", "PLANT", "STONE", "CABLE", "SHARE", "FRAUD", "LIGHT", "TRUCK", "HAPPY"];
 
-fetch("https://api.datamuse.com/words?sp=?????&max=500&md=f")
-  .then(res => res.json())
-  .then(data => {
-    const sorted = data
-      .filter(word => word.tags && word.tags[0].startsWith("f"))
-      .sort((a, b) => parseFloat(b.tags[0].slice(1)) - parseFloat(a.tags[0].slice(1)));
-
-    const topWords = sorted.slice(0, 100).map(w => w.word.toUpperCase());
-    solution = topWords[Math.floor(Math.random() * topWords.length)];
-    console.log("Word of the day:", solution); // Optional
-  });
-  let attempts = 0;
-  const maxAttempts = 6;
-
-  async function isRealWord(word) {
-    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-    return response.ok;
+  // Get word for this 6-hour block
+  function getWordForNow() {
+    const msPer6Hours = 6 * 60 * 60 * 1000;
+    const index = Math.floor(Date.now() / msPer6Hours) % words.length;
+    return words[index];
   }
 
+  const solution = getWordForNow();
+  let attempts = 0;
+  let maxAttempts = 6;
+
+  // Build the 6-row board
+  const board = document.getElementById("board");
+  for (let i = 0; i < maxAttempts; i++) {
+    const row = document.createElement("div");
+    row.className = "row";
+    for (let j = 0; j < 5; j++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      row.appendChild(cell);
+    }
+    board.appendChild(row);
+  }
+
+  // Build keyboard
+  "QWERTYUIOPASDFGHJKLZXCVBNM".split("").forEach(letter => {
+    const btn = document.createElement("button");
+    btn.textContent = letter;
+    btn.onclick = () => {
+      const input = document.getElementById("guess");
+      if (input.value.length < 5) input.value += letter;
+    };
+    document.getElementById("keyboard").appendChild(btn);
+  });
+
+  // Backspace and Enter
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "⌫";
+  backBtn.onclick = () => {
+    const input = document.getElementById("guess");
+    input.value = input.value.slice(0, -1);
+  };
+  document.getElementById("keyboard").appendChild(backBtn);
+
+  const enterBtn = document.createElement("button");
+  enterBtn.textContent = "↵";
+  enterBtn.onclick = () => submitGuess();
+  document.getElementById("keyboard").appendChild(enterBtn);
+
+  // Submit guess
   async function submitGuess() {
-    if (!solution) {
-  alert("Hold on! The word is still loading...");
-  return;
-}
     const input = document.getElementById("guess");
     const guess = input.value.toUpperCase();
-    
-    if (guess.length !== 5) {
-      alert("Please enter a 5-letter word.");
-      return;
-    }
+    if (guess.length !== 5) return alert("Enter 5 letters.");
 
     const valid = await isRealWord(guess.toLowerCase());
-    if (!valid) {
-      alert("Not a real word.");
-      return;
-    }
+    if (!valid) return alert("Not a valid word.");
 
     attempts++;
     const result = evaluateGuess(guess);
-    createRow(guess, result);
+    updateRowDisplay(guess, result);
     updateKeyboardColors(guess, result);
     input.value = "";
 
     if (guess === solution) {
-      document.getElementById("message").textContent = "🎉 You guessed it!";
-      input.disabled = true;
+      document.getElementById("message").textContent = "🎉 You got it!";
+      showDefinition(guess.toLowerCase());
     } else if (attempts >= maxAttempts) {
-      document.getElementById("message").textContent = `😢 Game Over. The word was ${solution}.`;
-      input.disabled = true;
-    }
-  }
-
-  function evaluateGuess(guess) {
-    const result = [];
-    for (let i = 0; i < 5; i++) {
-      if (guess[i] === solution[i]) {
-        result.push("correct");
-      } else if (solution.includes(guess[i])) {
-        result.push("present");
+      const retry = confirm("Game over. Want 3 more tries?");
+      if (retry) {
+        maxAttempts += 3;
+        const row = document.createElement("div");
+        row.className = "row";
+        for (let j = 0; j < 5; j++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          row.appendChild(cell);
+        }
+        board.appendChild(row);
       } else {
-        result.push("absent");
+        document.getElementById("message").textContent = `❌ Word was ${solution}`;
+        showDefinition(solution.toLowerCase());
       }
     }
-    return result;
   }
 
-  function createRow(word, result) {
-    const row = document.createElement("div");
-    row.className = "row";
-    for (let i = 0; i < 5; i++) {
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.textContent = word[i];
-      if (result) cell.classList.add(result[i]);
-      row.appendChild(cell);
+  // Check dictionary
+  async function isRealWord(word) {
+    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+    return res.ok;
+  }
+
+  async function showDefinition(word) {
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      const data = await res.json();
+      const def = data[0].meanings[0].definitions[0].definition;
+      const example = data[0].meanings[0].definitions[0].example || "(no example)";
+      document.getElementById("definition").innerHTML = `
+        <p><strong>Definition:</strong> ${def}</p>
+        <p><strong>Example:</strong> ${example}</p>
+      `;
+    } catch {
+      document.getElementById("definition").textContent = "No definition available.";
     }
-    document.getElementById("board").appendChild(row);
   }
-  // Create the virtual keyboard
-const keyboardContainer = document.getElementById("keyboard");
-const keyLayout = [
-  "QWERTYUIOP",
-  "ASDFGHJKL",
-  "ZXCVBNM"
-];
 
-keyLayout.forEach(rowLetters => {
-  const row = document.createElement("div");
-  row.className = "kb-row";
-  rowLetters.split("").forEach(letter => {
-    const key = document.createElement("button");
-    key.textContent = letter;
-    key.addEventListener("click", () => {
-      const input = document.getElementById("guess");
-      if (input.value.length < 5) {
-        input.value += letter;
-      }
+  // Check accuracy
+  function evaluateGuess(guess) {
+    return guess.split("").map((char, i) =>
+      char === solution[i] ? "correct" :
+      solution.includes(char) ? "present" : "absent"
+    );
+  }
+
+  function updateRowDisplay(guess, result) {
+    const row = board.children[attempts - 1];
+    Array.from(row.children).forEach((cell, i) => {
+      cell.textContent = guess[i];
+      cell.classList.add(result[i]);
     });
-    row.appendChild(key);
-  });
-  keyboardContainer.appendChild(row);
-});
+  }
 
-// Track used letters
-function updateKeyboardColors(guess, result) {
-  const keys = document.querySelectorAll("#keyboard button");
-  guess.split("").forEach((letter, i) => {
-    const key = Array.from(keys).find(k => k.textContent === letter);
-    if (key) {
-      if (result[i] === "correct") {
-        key.style.backgroundColor = "green";
-        key.style.color = "white";
-      } else if (result[i] === "present" && key.style.backgroundColor !== "green") {
-        key.style.backgroundColor = "goldenrod";
-        key.style.color = "white";
-      } else if (result[i] === "absent" && key.style.backgroundColor !== "green" && key.style.backgroundColor !== "goldenrod") {
-        key.style.backgroundColor = "#333";
-        key.style.color = "white";
-      }
-    }
-  });
-}
-
+  function updateKeyboardColors(guess, result) {
+    guess.split("").forEach((char, i) => {
+      const btns = [...document.querySelectorAll("#keyboard button")];
+      const btn = btns.find(b => b.textContent === char);
+      if (!btn) return;
+      if (result[i] === "correct") btn.style.backgroundColor = "green";
+      else if (result[i] === "present" && btn.style.backgroundColor !== "green") btn.style.backgroundColor = "goldenrod";
+      else if (result[i] === "absent" && !["green", "goldenrod"].includes(btn.style.backgroundColor)) btn.style.backgroundColor = "#3a3a3c";
+      btn.style.color = "white";
+    });
+  }
 </script>
-
-
 </body>
 </html>
